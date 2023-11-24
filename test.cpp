@@ -131,7 +131,7 @@ int main()
     // forloop for semester
     // section wise
     vector<string> sub = {"COAL", "DS", "LA", "DISCRETE"};
-    vector<string> code = {"EE1002", "CS1210", "MT101", "CS1001"};
+    vector<string> code = {"EE1002", "CS1210", "MT101", "CS1005"};
     section h(3, 50, 'H');
     section g(3, 50, 'G');
     h.assignSubjects(sub, code);
