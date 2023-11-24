@@ -137,4 +137,5 @@ int main()
     h.assignSubjects(sub, code);
     h.display();
     teacher numteachers[4];
+    cout<<"hello"<<endl;
 }
