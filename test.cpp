@@ -1,11 +1,14 @@
 #include <bits/stdc++.h>
 using namespace std;
-
+#define max 2
 
 struct info{
     string tname;
-    string sectionname;
+    char sectionname;
+    int semester;
+    string sname;
 };
+
 class students
 {
 public:
@@ -30,12 +33,12 @@ public:
 
 class section
 {
+
+public:
     int semester, strength;
     students *obj;
     char name;
     subject all[4];
-
-public:
     section() {}
     section(int semester, int strength, char name) : semester(semester), strength(strength), name(name) {}
 
@@ -50,12 +53,10 @@ public:
 
     void display()
     {
-
         cout << "SECTION: " << semester << name << endl;
         cout << "STUDENTS: " << strength << endl;
         for (int i = 0; i < 4; ++i)
         {
-
             cout << all[i].name << endl;
         }
     }
@@ -63,18 +64,22 @@ public:
 
 class teacher
 {
-    subject courses[4];
-    section no_of_sections[4];
-
-    int cntSec = 0, max = 4;
+    int cntSec = 0,cntCourses=0;
+    subject courses[max];
+    section no_of_sections[max];
+    info printing[max];
+    int cntinfo=0;
+    string name;
 
 public:
+    teacher(string name):name(name){}
     void assignSubjects(vector<string> &sub, vector<string> &code)
     {
         for (int i = 0; i < sub.size(); ++i)
         {
             courses[i].setname(sub[i]);
             courses[i].setcode(code[i]);
+            cntCourses++;
         }
     }
 
@@ -91,7 +96,7 @@ public:
 
     void passSection(section obj1,section obj2,section obj3)
     {
-       if(cntSec+3<=4)
+       if(cntSec+3<=max)
         return;
        no_of_sections[cntSec++]=obj1;
        no_of_sections[cntSec++]=obj2;
@@ -100,7 +105,8 @@ public:
 
     void passSection(section obj1,section obj2)
     {
-       if(cntSec+2<=4)
+       
+       if(cntSec+2>max)
         return;
        no_of_sections[cntSec++]=obj1;
        no_of_sections[cntSec++]=obj2;
@@ -108,22 +114,37 @@ public:
 
     void passSection(section obj1)
     {
-       if(cntSec+1<=4)
+       if(cntSec+1<=max)
         return;
        no_of_sections[cntSec++]=obj1;
     }
 
     void matching(){
-        int counterForSection=0,counterForSubject=0;
-        for(int i=counterForSection;i<4;++i){
-            for(int j=counterForSubject;j<4;++j){
-                //matching
+        bool flag=true;
+        for(int i=0;i<cntSec;++i){
+            for(int j=0;j<cntCourses;++j){
+                for(int k=0;k<4;k++){
+                    if(courses[j].name==no_of_sections[i].all[k].name){
+                        printing[cntinfo].sectionname=no_of_sections[i].name;
+                        printing[cntinfo].semester=no_of_sections[i].semester;
+                        printing[cntinfo].sname=courses[j].name;
+                        printing[cntinfo++].tname=name;
+                    }
+                }
             }
+        }
+    }
+    void PrintInfo(){
+        cout<<name<<endl;
+        for(int i=0;i<2;i++){        
+            cout<<printing[i].semester<<printing[i].sectionname<<" "<<printing[i].sname<<endl;
         }
     }
 };
 
-
+class TimeTable{
+    //3D solve 
+};
 
 
 int main()
@@ -131,12 +152,18 @@ int main()
     // forloop for semester
     // section wise
     vector<string> sub = {"COAL", "DS", "LA", "DISCRETE"};
-    vector<string> code = {"EE1002", "CS1210", "MT101", "CS1005"};
+    vector<string> code = {"EE1002", "CS1210", "MT101", "CS1001"};
+    vector<string> subT={"LA"};
+    vector<string> CodeT={"MT101"};
     section h(3, 50, 'H');
     section g(3, 50, 'G');
     h.assignSubjects(sub, code);
-    h.display();
-    teacher numteachers[4];
-    cout<<"hello"<<endl;
-    cout<<"my name is ahad commit V1.2";
+    g.assignSubjects(sub,code);
+    teacher t1("MOHEEZ");
+    t1.passSection(h,g);
+    t1.assignSubjects(subT,CodeT);
+    t1.matching();
+    t1.PrintInfo();
+    //h.display();
+
 }
