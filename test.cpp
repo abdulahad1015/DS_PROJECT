@@ -2,7 +2,7 @@
 using namespace std;
 #define max 2
 
-struct info{
+struct CreditHour{
     string tname;
     char sectionname;
     int semester;
@@ -67,7 +67,7 @@ class teacher
     int cntSec = 0,cntCourses=0;
     subject courses[max];
     section no_of_sections[max];
-    info printing[max];
+    CreditHour printing[max];
     int cntinfo=0;
     string name;
 
@@ -144,6 +144,7 @@ public:
 
 class TimeTable{
     //3D solve 
+    
 };
 
 
