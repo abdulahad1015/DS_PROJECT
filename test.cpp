@@ -1,27 +1,34 @@
-#include <iostream>
-#include <vector>
-#include <math.h>
-#include <queue>
+#include <bits/stdc++.h>
 using namespace std;
-#define max 2
+#define TotalCourses 4
+#define maxCredit 12
 #define monday 0
 #define tuesday 1
 #define wednesday 3
 #define thursday 4
 #define friday 5
 
+
 class HashNode{
+    private:
+        string s;
+        int frequency;
     public:
-    int key;
-	int value;
-	HashNode* next;
-        HashNode(int key, int value){
-        this->key = key;
-	    this->value = value;
-	    this->next = NULL;
+        HashNode(string s){
+        this->s=s;
+        frequency=1;
         }
+        void setfrequency(){
+            frequency++;
+        }
+        
+        int getfrequency(){
+            return frequency;
+        }
+        
 };
- class HashMap{
+
+class HashMap{
     private:
         HashNode** htable;
         int size=1000000;
@@ -34,103 +41,60 @@ class HashNode{
         ~HashMap(){
             delete []htable;
         }
-        int hash(int num){
+        int hash(string s){
             int hashval=0;
             double sub;
-            for(int i=1;num>0;i++){
-                sub=pow((num%10),i);
+            for(int i=1;s.length();i++){
+                sub=pow(((s[0]-'0')%10),i);
 				hashval+=sub;
-                num=num/10;
+                s.erase(s.begin());
             }
             return hashval%size;
         }
-        void insert(int num){
-            int hashval=hash(num);
-            HashNode* Newnode = new HashNode(hashval,num);
+        void insert(string s){
+            int hashval=hash(s);
+            HashNode* Newnode = new HashNode(s);
             if(htable[hashval]==NULL){
                 htable[hashval]=Newnode;
                 //cout<<htable[hashval]->value<<endl;
             }
             else{
-                HashNode *temp=htable[hashval];
-                while(temp->next!=NULL){
-                    temp=temp->next;
-                }
-                temp->next=Newnode;
-                //cout<<Newnode->value<<endl;
+                htable[hashval]->setfrequency();
             }
         }
-        int search(int val){
-            int hashval=hash(val);
-            HashNode *temp=htable[hashval];
-            while(temp!=NULL&&temp->value!=val){
-                temp=temp->next;
-            }
-            if(temp==NULL){
+        int search(string s){
+            int hashval=hash(s);
+            if(htable[hashval]==NULL){
                 return 0;
             }
-            return 1;
+            return htable[hashval]->getfrequency();
         }
-        void display(){
-            for(int i=0;i<size;i++){
-                HashNode *temp=htable[i];
-                if(temp==NULL){
-                    cout<<"NULL";
-                }
-                while(temp!=NULL){
-                    cout<<temp->value<<"->";
-                    temp=temp->next;
-                }
-                cout<<endl;
-            }
-        }
-        void deleteVal(int val){
-            int hashval=hash(val);
-            if(htable[hashval]==NULL){
-                return;
-            }
-            if(htable[hashval]->value==val){
-               HashNode* temp=htable[hashval];
-               htable[hashval]=htable[hashval]->next;
-               temp->next=NULL;
-               delete temp;
-            }
-            else{
-                HashNode* temp=htable[hashval];
-                while(temp!=NULL&&temp->next!=NULL&&temp->next->value!=val){
-                    temp=temp->next;
-                }
-                HashNode* temp2=temp->next;
-                if(temp2!=NULL){
-                    temp->next=temp2->next;
-                    temp2->next=NULL;
-                }
-                delete temp2;
-                return;
-            }
-        } 
         
 };
-struct CreditHour{
+
+struct Info{
     string tname;
-    char sectionname;
-    int semester;
+    string sectionname;
     string sname;
     int hours;
 };
 
+void shufflequeue(queue<Info>&myq){
+    
+}
 class students
 {
 public:
     string name;
     char elective;
 };
+
 class subject
 {
 public:
     string name;
     string code;
-    int hours;
+    int hours,type;//1-Core,2-Elective,3-Lab,4-Free Slot
     subject() {}
     void setname(string name)
     {
@@ -143,34 +107,39 @@ public:
     void sethours(int hours){
         this->hours=hours;
     }
+
+    void settype(int type){
+        this->type=type;
+    }
 };
 
 class section
 {
 
 public:
-    int semester, strength;
+    int strength;
     students *obj;
-    char name;
-    subject courses[4];
+    string sectionname;
+    subject courses[TotalCourses];
     section() {}
-    section(int semester, int strength, char name) : semester(semester), strength(strength), name(name) {}
+    section(string sectionname,int strength) : sectionname(sectionname),strength(strength) {}
 
-    void assignSubjects(vector<string> &sub, vector<string> &code, vector<int> &hours)
+    void assignSubjects(vector<string> &sub, vector<string> &code, vector<int> &hours,vector<int>&type)
     {
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < TotalCourses; ++i)
         {
             courses[i].setname(sub[i]);
             courses[i].setcode(code[i]);
             courses[i].sethours(hours[i]);
+            courses[i].settype(type[i]);
         }
     }
 
     void display()
     {
-        cout << "SECTION: " << semester << name << endl;
+        cout << "SECTION: " << sectionname << endl;
         cout << "STUDENTS: " << strength << endl;
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < TotalCourses; ++i)
         {
             cout << courses[i].name << endl;
         }
@@ -180,14 +149,14 @@ public:
 class teacher
 {
     int cntCourses=0;
-    subject courses[max];
-    section no_of_sections[max];
+    subject courses[TotalCourses];
+    section no_of_sections[TotalCourses];
    
-    int cntinfo=0;
     string name;
     
 public:
-    CreditHour credit[max];
+    int cntinfo=0;
+    Info credit[maxCredit];
     int cntSec = 0;
     static int teachers;
     teacher(){
@@ -210,70 +179,114 @@ public:
         }
     }
 
-    void passSection(section obj1,section obj2,section obj3,section obj4)
-    {
-       if(cntSec!=0)
-        return;
-       no_of_sections[0]=obj1;
-       no_of_sections[1]=obj2;
-       no_of_sections[2]=obj3;
-       no_of_sections[3]=obj4;
-       cntSec=4;
-    }
-
-    void passSection(section obj1,section obj2,section obj3)
-    {
-       if(cntSec+3<=max)
-        return;
-       no_of_sections[cntSec++]=obj1;
-       no_of_sections[cntSec++]=obj2;
-       no_of_sections[cntSec++]=obj3;
-    }
-
-    void passSection(section obj1,section obj2)
-    {
-       
-       if(cntSec+2>max)
-        return;
-       no_of_sections[cntSec++]=obj1;
-       no_of_sections[cntSec++]=obj2;
-    }
-
     void passSection(section obj1)
     {
-       if(cntSec+1<=max)
+       if(cntSec>=TotalCourses)
         return;
        no_of_sections[cntSec++]=obj1;
     }
 
     void matching(){
-        bool flag=true;
+ 
         for(int i=0;i<cntSec;++i){
-            for(int j=0;j<cntCourses;++j){
-                for(int k=0;k<4;k++){
+            //for each section
+            for(int j=0;j<TotalCourses;++j){
+                //for each course of the teacher
+                for(int k=0;k<TotalCourses;k++){
+                    //check each course of that section to find match
                     if(courses[j].name==no_of_sections[i].courses[k].name){
-                        credit[cntinfo].sectionname=no_of_sections[i].name;
-                        credit[cntinfo].semester=no_of_sections[i].semester;
+                        if(courses[j].type==1||courses[j].type==3){
+                        for(int l=0;l<courses[j].hours;++l){
+                        credit[cntinfo].sectionname=no_of_sections[i].sectionname;
                         credit[cntinfo].sname=courses[j].name;
                         credit[cntinfo].hours=courses[j].hours;
                         credit[cntinfo++].tname=name;
+                        }
+                        }
+                        
                     }
                 }
             }
         }
     }
-    void PrintInfo(){
-        cout<<name<<endl;
-        for(int i=0;i<2;i++){        
-            cout<<credit[i].semester<<credit[i].sectionname<<" "<<credit[i].sname<<" Credit hours: "<<credit[i].hours<<endl;
-        }
-    }
+
 };
+
 int teacher::teachers=0;
+
 class TimeTable{
     HashMap days[5];
-    CreditHour table[5][8][33];    
+    Info table[5][8][33];
+    public:
+
+    void fillTable(queue<Info>&allcourses){
+        for(int i=0;i<5;++i){
+            //numbers of days
+            for(int j=0;j<8;++j){
+                //for each time slot
+                for(int k=0;k<33;++k){
+                   if(table[i][j][k]!=empty){
+                    //will make logic for table
+                    continue;
+                   }
+                   Info current=allcourses.front();
+                    //for each room
+                   if(current.hours==1){
+                    days[i].insert(current.sectionname);
+                    days[i].insert(current.sectionname);
+                    days[i].insert(current.sectionname);//three classes done for this section
+                    table[i][j][k]=current;
+                    table[i][j+1][k]=current;
+                    table[i][j+2][k]=current;
+                    allcourses.pop();
+                    continue;
+                   }
+                   if(current.hours==3||current.hours==2){
+                   bool allowed1= checkotherrooms(i,j,k,current.sectionname,current.tname);
+                   bool allowed2=frequencyOFsectionORteacher(current.sectionname,current.tname,i);
+                   bool allowed3=frequencyOFsectionANDteacher(current.tname+current.sectionname,i);
+                   if(allowed1&&allowed2&&allowed3){
+                    table[i][j][k]=current;
+                    allcourses.pop();
+                   }
+                   else{
+                    shufflequeue(allcourses);
+                    k--;
+                    continue;
+                   }
+                   }
+                }
+            }
+        }
+    }    
+
+    bool checkotherrooms(int day,int slot,int room,string section, string teacher){
+        for(int i=0;i<room;++i){
+            if(table[day][slot][room].sectionname==section||table[day][slot][room].tname==teacher){
+                return false;
+            }
+        }
+        return true;
+    }
     
+    bool frequencyOFsectionORteacher(string section,string teacher,int currentday){
+        int fSec=days[currentday].search(section);
+        int fteacher=days[currentday].search(teacher);
+        if(fSec>6||fteacher>6){
+            return false;
+        }
+        
+        days[currentday].insert(section);
+        days[currentday].insert(teacher);
+    }
+
+     bool frequencyOFsectionANDteacher(string combined, int currentday){
+        int fComb=days[currentday].search(combined);
+        if(fComb==2){
+            return false;
+        }
+        days[currentday].insert(combined);
+    }
 };
 
 
@@ -285,6 +298,7 @@ int main()
     // forloop for semester
     // section wise
     vector<string> sub = {"COAL", "DS", "LA", "DISCRETE"};
+    vector<int> type= {1,1,1,1};
     vector<string> code = {"EE1002", "CS1210", "MT101", "CS1001"};
     vector<int> hours = {3,2,3,2};
     //teacher subjects
@@ -292,32 +306,23 @@ int main()
     vector<string> CodeT={"MT101"};
     vector<int> hoursT = {3};
     //assigning subjects to sections
-    section h(3, 50, 'H');
-    section g(3, 50, 'G');
-    h.assignSubjects(sub, code,hours);
-    g.assignSubjects(sub,code,hours);
+    section h("3H",50);
+    section g("3G",50);
+    h.assignSubjects(sub, code,hours,type);
+    g.assignSubjects(sub,code,hours,type);
     // assigning subjects and sections to teacher
-    t1[0].passSection(h,g);
+    t1[0].passSection(h);
+    t1[0].passSection(g);
     t1[0].assignSubjects(subT,CodeT,hoursT);
     t1[0].matching();
     //t1[0].PrintInfo();
     // Pushing every credit of every teacher in a queue
-    queue<CreditHour> teacherCredits;
-    for(int i=0;i<t1->teachers;i++){
-        for(int j=0;j<t1[i].cntSec;j++){
-            CreditHour temp=t1[i].credit[j];
-            for(int k=0;k<temp.hours;k++){
-                teacherCredits.push(temp);
-            }
-        }
+    queue<Info> teacherCredits;
+    for(int i=0;i<t1->cntinfo;++i){
+        teacherCredits.push(t1->credit[i]);
     }
     //checking queue 
     cout<<"\nqueue:"<<endl;
-    while(!teacherCredits.empty()){
-        CreditHour temp=teacherCredits.front();
-        cout<<temp.semester<<temp.sectionname<<" "<<temp.sname<<" Credit hours: "<<temp.hours<<endl;
-        teacherCredits.pop();
-    }
     
     //h.display();
 
