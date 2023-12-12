@@ -257,10 +257,10 @@ int teacher::teachers=0;
 class TimeTable{
     const int no_days=5;
     HashMap days[5];
-    Info table[5][8][33];
     bool visited[5][8][33+no_labs];
     
     public:
+    Info table[5][8][33];
 
     void fillTable(queue<Info>&allcourses){
         
@@ -270,13 +270,22 @@ class TimeTable{
                 //for each time slot
                 for(int k=0;k<33;++k){
                    Info current=allcourses.front();
+                   if(current.hours==0){
+                    table[i][j][k]=current;
+                    allcourses.pop();
+                    continue;
+                   }
                    if(current.hours==3||current.hours==2){
+                   
                    bool allowed1= checkotherrooms(i,j,k,current.sectionname,current.tname);
                    bool allowed2=frequencyOFsectionORteacher(current.sectionname,current.tname,i);
                    bool allowed3=frequencyOFsectionANDteacher(current.tname+current.sectionname,i);
                    if(allowed1&&allowed2&&allowed3){
                     table[i][j][k]=current;
                     visited[i][j][k]=true;
+                    days[i].insert(current.sname);
+                    days[i].insert(current.tname);
+                    days[i].insert(current.tname+current.sectionname);
                     allcourses.pop();
                    }
                    else{
@@ -292,7 +301,7 @@ class TimeTable{
 
     bool checkotherrooms(int day,int slot,int room,string section, string teacher){
         for(int i=0;i<room;++i){
-            if(table[day][slot][room].sectionname==section||table[day][slot][room].tname==teacher){
+            if(table[day][slot][i].sectionname==section||table[day][slot][i].tname==teacher){
                 return false;
             }
         }
@@ -305,9 +314,6 @@ class TimeTable{
         if(fSec>6||fteacher>6){
             return false;
         }
-        
-        days[currentday].insert(section);
-        days[currentday].insert(teacher);
         return true;
     }
 
@@ -317,17 +323,20 @@ class TimeTable{
             return false;
         }
         
-        days[currentday].insert(combined);
         return true;
     }
 
     void display(){
-        for(int i=0;i<no_days;++i){
+        for(int i=0;i<1;++i){
+            cout<<"\t\t\t\tMONDAY\n\n\n";
             for(int j=0;j<8;++j){
+                cout<<"SLOT "<<j+8<<":\t";
                 for(int k=0;k<33+no_labs;++k){
-                    cout<<table[i][j][k].sectionname<<" "<<table[i][j][k].sname<<" "<<table[i][j][k].tname<<endl;
+                    cout<<table[i][j][k].sectionname<<table[i][j][k].sname<<table[i][j][k].tname<<"\t";
                 }
+                cout<<"\n\n\n";
             }
+
         }
     }
 };
@@ -392,13 +401,18 @@ int main()
              teacherCredits.push(t1[i].credit[j]);
      }
      }
-    
-  //  shufflequeue(teacherCredits);
+    Info freeslot;
+    freeslot.hours=0;
+    freeslot.sectionname="free";
+    freeslot.sname="free";
+    freeslot.tname="free";
+    for(int i=0;i<1296;++i)teacherCredits.push(freeslot);
+   // shufflequeue(teacherCredits);
     TimeTable mytable;
     mytable.fillTable(teacherCredits);
     mytable.display();
 
-
+  
 
     
     //h.display();
