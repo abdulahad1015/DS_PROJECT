@@ -6,8 +6,8 @@
 #include <fstream>
 #include <sstream>
 using namespace std;
-#define TotalSections 10
-#define TotalTeachers 3
+#define TotalSections 35
+#define TotalTeachers 4
 #define TotalCourses 4
 #define maxCredit 12
 #define monday 0
@@ -54,7 +54,7 @@ struct Info{
     string tname;
     string sectionname;
     string sname;
-    int hours;
+    int hours=0;
 };
 
 
@@ -130,9 +130,10 @@ int teacher::teachers=0;
 class TimeTable {
     const int no_days = 5, no_slots=8, no_rooms=33;
     HashMap days[5];
+    Info table[5][33][8];
 
 public:
-    Info table[5][8][33];
+    
 
     void fillTable(queue<Info>&);
 
@@ -143,9 +144,19 @@ public:
     bool frequencyOFsectionANDteacher(string , int);
 
     void display();
+    
+    void Monday();
+
+    void Tuesday();
+
+    void Wednesday();
+
+    void Thursday();
+
+    void Friday();
 };
 
-void breakSections(const string& line,int i,section *s1)
+void breakSections(const string& line,section *s1)
 {
     //cout << "Original Line: " << line << endl;
 
@@ -166,7 +177,7 @@ void breakSections(const string& line,int i,section *s1)
 
 }
 
-void readSections(section s1[],int n)
+void readSections(section s1[])
 {
     int i=0;
     string line;
@@ -178,15 +189,15 @@ void readSections(section s1[],int n)
         return;
     }
 
-    while (getline(fin, line)&&i<n)
+    while (getline(fin, line))
     {
-        breakSections(line,i,&s1[i]);
+        breakSections(line,&s1[i]);
         i++;
     }
 
     fin.close();
 }
-void breakTeachers(const string& line,int i,teacher *t1,section s1[])
+void breakTeachers(const string& line,teacher *t1,section s1[])
 {
     //cout << "Original Line: " << line << endl;
 
@@ -215,11 +226,11 @@ void breakTeachers(const string& line,int i,teacher *t1,section s1[])
             }
         }
     }
-
+    t1->matching();
     
 
 }
-void readTeachers(teacher t1[],section s1[],int n)
+void readTeachers(teacher t1[],section s1[])
 {
     int i=0;
     string line;
@@ -231,9 +242,9 @@ void readTeachers(teacher t1[],section s1[],int n)
         return;
     }
 
-    while (getline(fin, line)&&i<n)
+    while (getline(fin, line))
     {
-        breakTeachers(line,i,&t1[i],s1);
+        breakTeachers(line,&t1[i],s1);
         i++;
     }
 
@@ -245,29 +256,28 @@ int main()
 {   
     //----------------------------------------
     section s1[TotalSections];
-    readSections(s1,TotalSections);
+    readSections(s1);
     //for(int i=0;i<10;i++)
     //s1[i].display();
     //-----------------------------------------
 
 
     teacher t1[TotalTeachers];
-    readTeachers(t1,s1,TotalTeachers);
+    readTeachers(t1,s1);
     
-    for(int i=0;i<TotalTeachers;i++){
-        cout<<t1[i].name<<" ----------------------"<<endl;
-        for(int j=0;j<t1[i].cntSec;j++){
-            t1[i].no_of_sections[j].display();
-        }
-    }
-    for(int i=0;i<TotalTeachers;i++){
-        cout<<t1[i].name<<"---------------------------"<<endl;
-        for(int j=0;j<t1[i].cntCourses;j++){
-            cout<<t1[i].courses[j].name<<endl;
-        }
-    }
+    // for(int i=0;i<TotalTeachers;i++){
+    //     cout<<t1[i].name<<" ----------------------"<<endl;
+    //     for(int j=0;j<t1[i].cntSec;j++){
+    //         t1[i].no_of_sections[j].display();
+    //     }
+    // }
+    // for(int i=0;i<TotalTeachers;i++){
+    //     cout<<t1[i].name<<"---------------------------"<<endl;
+    //     for(int j=0;j<t1[i].cntCourses;j++){
+    //         cout<<t1[i].courses[j].name<<endl;
+    //     }
+    // }
     
-
 
     //-----------------------------------------
     // t1[0].setname("MOHEEZ");
@@ -317,7 +327,9 @@ int main()
     // t1[2].matching();
     // cout<<t1[2].cntinfo<<endl;
 	queue<Info> teacherCredits;
-     for(int i=0;i<3;++i){
+    
+     for(int i=0;i<TotalTeachers;++i){
+        cout<<t1[i].cntinfo<<endl;
         for(int j=0;j<t1[i].cntinfo;++j){
              teacherCredits.push(t1[i].credit[j]);
      }
@@ -327,10 +339,27 @@ int main()
     freeslot.sectionname="-";
     freeslot.sname="-";
     freeslot.tname="-";
-    for(int i=0;i<1296;++i)teacherCredits.push(freeslot);
+    
+    // for(int i=0;i<teacherCredits.size();i++){
+    //     Info a=teacherCredits.front();
+    //     cout<<a.sectionname<<" "<<a.sname<<" "<<a.hours<<" "<<a.tname<<endl;
+    //     teacherCredits.pop();
+    //     teacherCredits.push(a);
+    // }
+    for(int i=0;i<1287;++i)teacherCredits.push(freeslot);
+    cout<<"HElooooooooo"<<teacherCredits.size()<<endl;
    // shufflequeue(teacherCredits);
     TimeTable mytable;
     mytable.fillTable(teacherCredits);
+    mytable.display();
+    mytable.Monday();
+    mytable.Tuesday();
+    mytable.Wednesday();
+    mytable.Thursday();
+    mytable.Friday();
+
+
+
     mytable.display();
   
 
@@ -477,12 +506,20 @@ void teacher::matching() {
 ///////////////////////HASHMAP CLASS///////////////
 
 void TimeTable::fillTable(queue<Info>& allcourses) {
-    for(int i=0;i<no_days;++i){
+    shufflequeue(allcourses);
+    for(int i=0;i<5;++i){
             //numbers of days
             for(int j=0;j<no_rooms;++j){
                 //for each time slot
                 for(int k=0;k<no_slots;++k){
+                //    if(i==4&&j==32&&k==7&&!allcourses.empty()){
+                //         i=0;
+                //         break;
+                //     } 
                    Info current=allcourses.front();
+                    if(table[i][j][k].hours>0){
+                        continue;
+                    }
                    if(current.hours==0){
                     table[i][j][k]=current;
                     allcourses.pop();
@@ -501,7 +538,8 @@ void TimeTable::fillTable(queue<Info>& allcourses) {
                     allcourses.pop();
                    }
                    else{
-                    shufflequeue(allcourses);
+                    allcourses.pop();
+                    allcourses.push(current);
                     k--;
                     continue;
                    }
@@ -513,7 +551,7 @@ void TimeTable::fillTable(queue<Info>& allcourses) {
 
 bool TimeTable::checkOtherRooms(int day, int slot, int room, std::string section, std::string teacher) {
     for (int i = 0; i < room; ++i) {
-        if (table[day][slot][i].sectionname == section || table[day][slot][i].tname == teacher) {
+        if (table[day][i][slot].sectionname == section || table[day][i][slot].tname == teacher) {
             return false;
         }
     }
@@ -539,14 +577,88 @@ bool TimeTable::frequencyOFsectionANDteacher(string combined, int currentDay) {
 }
 
 void TimeTable::display() {
-    for (int i = 0; i < no_days; ++i) {
+    for (int i = 0; i < 4; ++i) {
         cout << "\t\t\t\tMONDAY\n\n\n";
-        for (int j = 0; j < 8; ++j) {
-            cout << "SLOT " << j + 8 << ":\t";
-            for (int k = 0; k < 33 + no_labs; ++k) {
+        for (int j = 0; j < 33; ++j) {
+            for (int k = 0; k < 8; ++k) {
                 cout << table[i][j][k].sectionname << table[i][j][k].sname << table[i][j][k].tname << "\t";
             }
             cout << "\n\n\n";
         }
     }
+}
+void TimeTable::Monday()
+{
+        fstream file;
+        file.open("monday.csv");
+        for(int i=0;i<33;i++)
+        {
+            //file << i+8<<"-"<<i+9<<",";	
+            for(int j=0;j<8;j++)
+            {
+                file<<table[0][i][j].tname<<" "<<table[0][i][j].sectionname<<" "<<table[0][i][j].sname<<",";
+            }
+            file <<endl;
+        } 
+        file.close();
+}
+void TimeTable::Tuesday()
+{
+        fstream file;
+        file.open("tuesday.csv");
+        for(int i=0;i<33;i++)
+        {
+            //file << i+8<<"-"<<i+9<<",";	
+            for(int j=0;j<8;j++)
+            {
+                file<<table[1][i][j].tname<<" "<<table[1][i][j].sectionname<<" "<<table[1][i][j].sname<<",";
+            }
+            file <<endl;
+        } 
+        file.close();
+}
+void TimeTable::Wednesday()
+{
+        fstream file;
+        file.open("wednesday.csv");
+        for(int i=0;i<33;i++)
+        {
+            file << i+8<<"-"<<i+9<<",";	
+            for(int j=0;j<8;j++)
+            {
+                file<<table[2][i][j].tname<<" "<<table[2][i][j].sectionname<<" "<<table[2][i][j].sname<<",";
+            }
+            file <<endl;
+        } 
+        file.close();
+}
+void TimeTable::Thursday()
+{
+        fstream file;
+        file.open("thursday.csv");
+        for(int i=0;i<33;i++)
+        {
+            //file << i+8<<"-"<<i+9<<",";	
+            for(int j=0;j<8;j++)
+            {
+                file<<table[3][i][j].tname<<" "<<table[3][i][j].sectionname<<" "<<table[3][i][j].sname<<",";
+            }
+            file <<endl;
+        } 
+        file.close();
+}    
+void TimeTable::Friday()
+{
+        fstream file;
+        file.open("friday.csv");
+        for(int i=0;i<33;i++)
+        {
+            //file << i+8<<"-"<<i+9<<",";	
+            for(int j=0;j<8;j++)
+            {
+                file<<table[4][i][j].tname<<" "<<table[4][i][j].sectionname<<" "<<table[4][i][j].sname<<",";
+            }
+            file <<endl;
+        } 
+        file.close();
 }
