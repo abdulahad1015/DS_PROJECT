@@ -135,17 +135,14 @@ class subject
 {
 public:
     string name;
-    string code;
+
     int hours,type;//1-Core,2-Elective,3-Lab,4-Free Slot
     subject() {}
     void setname(string name)
     {
         this->name = name;
     }
-    void setcode(string code)
-    {
-        this->code = code;
-    }
+
     void sethours(int hours){
         this->hours=hours;
     }
@@ -208,12 +205,11 @@ public:
     void setname(string name){
         this->name=name;
     }
-    void assignSubjects(vector<string> &sub, vector<string> &code,vector<int> &hours)
+    void assignSubjects(vector<string> &sub,vector<int> &hours)
     {
         for (int i = 0; i < sub.size(); ++i)
         {
             courses[i].setname(sub[i]);
-            courses[i].setcode(code[i]);
             courses[i].sethours(hours[i]);
             cntCourses++;
         }
@@ -348,21 +344,18 @@ int main()
     teacher t1[5];
     t1[0].setname("MOHEEZ");
     vector<string>sub={"LA"};
-    vector<string>code={"MT1002"};
     vector<int>hours={3};
-    t1[0].assignSubjects(sub,code,hours);
+    t1[0].assignSubjects(sub,hours);
 
     t1[1].setname("Atiya Jhokio");
     vector<string>sub1={"COAL"};
-    vector<string>code1={"XXXXX"};
     vector<int>hours1={3};
-    t1[1].assignSubjects(sub1,code1,hours1);
-
+    t1[1].assignSubjects(sub1,hours1);
+    
     t1[2].setname("MAFAZA");
     vector<string>sub2={"DISCRETE"};
-    vector<string>code2={"XXXXX"};
     vector<int>hours2={3};
-    t1[2].assignSubjects(sub2,code2,hours2);
+    t1[2].assignSubjects(sub2,hours2);
 
     vector<string>Subs={"ECC","DS","DISCRETE","COAL"};
     vector<int>type1={1,1,1,1};
@@ -403,9 +396,9 @@ int main()
      }
     Info freeslot;
     freeslot.hours=0;
-    freeslot.sectionname="free";
-    freeslot.sname="free";
-    freeslot.tname="free";
+    freeslot.sectionname="-";
+    freeslot.sname="-";
+    freeslot.tname="-";
     for(int i=0;i<1296;++i)teacherCredits.push(freeslot);
    // shufflequeue(teacherCredits);
     TimeTable mytable;
