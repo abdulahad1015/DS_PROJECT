@@ -3,6 +3,8 @@
 #include<queue>
 #include<ctime>
 #include<cmath>
+#include <fstream>
+#include <sstream>
 using namespace std;
 #define TotalCourses 4
 #define maxCredit 12
@@ -156,8 +158,8 @@ class section
 {
 
 public:
+    int maxcourses=0;
     int strength;
-    students *obj;
     string sectionname;
     subject courses[TotalCourses];
     section() {}
@@ -168,7 +170,6 @@ public:
         for (int i = 0; i < TotalCourses; ++i)
         {
             courses[i].setname(sub[i]);
-            courses[i].settype(type[i]);
         }
     }
 
@@ -176,7 +177,7 @@ public:
     {
         cout << "SECTION: " << sectionname << endl;
         cout << "STUDENTS: " << strength << endl;
-        for (int i = 0; i < TotalCourses; ++i)
+        for (int i = 0; i < maxcourses; ++i)
         {
             cout << courses[i].name << endl;
         }
@@ -223,15 +224,15 @@ public:
     }
 
     void matching(){
- 
         for(int i=0;i<cntSec;++i){
             //for each section
-            for(int j=0;j<TotalCourses;++j){
+            bool flag = false ;
+            for(int j=0;j<this->cntCourses&&!flag;++j){
                 //for each course of the teacher
-                for(int k=0;k<TotalCourses;k++){
+                for(int k=0;(k<no_of_sections[i].maxcourses)&&!flag;k++){
                     //check each course of that section to find match
                     if(courses[j].name==no_of_sections[i].courses[k].name){
-                        
+                        flag=true;
                         for(int l=0;l<courses[j].hours;++l){
                         credit[cntinfo].sectionname=no_of_sections[i].sectionname;
                         credit[cntinfo].sname=courses[j].name;
@@ -323,7 +324,7 @@ class TimeTable{
     }
 
     void display(){
-        for(int i=0;i<1;++i){
+        for(int i=0;i<i;++i){
             cout<<"\t\t\t\tMONDAY\n\n\n";
             for(int j=0;j<8;++j){
                 cout<<"SLOT "<<j+8<<":\t";
@@ -337,11 +338,101 @@ class TimeTable{
     }
 };
 
+void breakSections(const string& line,int i,section *s1)
+{
+    cout << "Original Line: " << line << endl;
+
+    stringstream ss(line);
+    vector<string> all;
+    string token;
+
+    while (getline(ss, token, ','))
+    {
+        all.push_back(token);
+    }
+    s1->sectionname=all[0];
+    s1->strength=stoi(all[1]);
+    int counter=stoi(all[2]);
+        s1->maxcourses=counter;
+    for(int j=0;j<counter;j++)
+    s1->courses[j].name=all[j+3];
+
+}
+
+void readSections(section s1[],int n)
+{
+    int i=0;
+    string line;
+    ifstream fin("sections.csv");
+
+    if (!fin.is_open())
+    {
+        cerr << "Error opening the file." << endl;
+        return;
+    }
+
+    while (getline(fin, line)&&i<n)
+    {
+        breakSections(line,i,&s1[i]);
+        i++;
+    }
+
+    fin.close();
+}
+void breakTeachers(const string& line,int i,section *s1)
+{
+    cout << "Original Line: " << line << endl;
+
+    stringstream ss(line);
+    vector<string> all;
+    string token;
+
+    while (getline(ss, token, ','))
+    {
+        all.push_back(token);
+    }
+    s1->sectionname=all[0];
+    s1->strength=stoi(all[1]);
+    int counter=stoi(all[2]);
+    for(int j=0;j<counter;j++)
+    s1->courses[j].name=all[j+3];
+
+}
+void readTeachers(section s1[],int n)
+{
+    int i=0;
+    string line;
+    ifstream fin("sections.csv");
+
+    if (!fin.is_open())
+    {
+        cerr << "Error opening the file." << endl;
+        return;
+    }
+
+    while (getline(fin, line)&&i<n)
+    {
+        breakTeachers(line,i,&s1[i]);
+        i++;
+    }
+
+    fin.close();
+}
+
 
 int main()
 {   
-    
+    //----------------------------------------
+    section s1[10];
+    readSections(s1,10);
+    for(int i=0;i<10;i++)
+    s1[i].display();
+    //-----------------------------------------
+
     teacher t1[5];
+
+
+    //-----------------------------------------
     t1[0].setname("MOHEEZ");
     vector<string>sub={"LA"};
     vector<int>hours={3};
@@ -351,7 +442,7 @@ int main()
     vector<string>sub1={"COAL"};
     vector<int>hours1={3};
     t1[1].assignSubjects(sub1,hours1);
-    
+
     t1[2].setname("MAFAZA");
     vector<string>sub2={"DISCRETE"};
     vector<int>hours2={3};
@@ -362,32 +453,32 @@ int main()
     vector<string>Subs2={"DS","LA","DISCRETE","COAL"};
     vector<int>type2={1,1,1,1};
    
-    section a1(48,"1A");
-    a1.assignSubjects(Subs,type1);
-	section b1(47,"1B");
-    b1.assignSubjects(Subs,type1);
-	section c1(45,"1C");
-    c1.assignSubjects(Subs,type1);
-	section d1(49,"1D");
-    d1.assignSubjects(Subs2,type2);
-	section e1(53,"1E");
-    e1.assignSubjects(Subs2,type2);
-	section f1(51,"1F");
-    f1.assignSubjects(Subs2,type2);
-	t1[0].passSection(d1);
-    t1[0].passSection(e1);
-    t1[0].matching();
-    cout<<t1[0].cntinfo<<endl;
-    t1[1].passSection(a1);
-    t1[1].passSection(b1);
-    t1[1].passSection(f1);
-    t1[1].matching();
-    cout<<t1[1].cntinfo<<endl;
-    t1[2].passSection(d1);
-    t1[2].passSection(f1);
-    t1[2].passSection(a1);
-    t1[2].matching();
-    cout<<t1[2].cntinfo<<endl;
+    // section a1(48,"1A");
+    // a1.assignSubjects(Subs,type1);
+	// section b1(47,"1B");
+    // b1.assignSubjects(Subs,type1);
+	// section c1(45,"1C");
+    // c1.assignSubjects(Subs,type1);
+	// section d1(49,"1D");
+    // d1.assignSubjects(Subs2,type2);
+	// section e1(53,"1E");
+    // e1.assignSubjects(Subs2,type2);
+	// section f1(51,"1F");
+    // f1.assignSubjects(Subs2,type2);
+	// t1[0].passSection(d1);
+    // t1[0].passSection(e1);
+    // t1[0].matching();
+    // cout<<t1[0].cntinfo<<endl;
+    // t1[1].passSection(a1);
+    // t1[1].passSection(b1);
+    // t1[1].passSection(f1);
+    // t1[1].matching();
+    // cout<<t1[1].cntinfo<<endl;
+    // t1[2].passSection(d1);
+    // t1[2].passSection(f1);
+    // t1[2].passSection(a1);
+    // t1[2].matching();
+    // cout<<t1[2].cntinfo<<endl;
 	queue<Info> teacherCredits;
      for(int i=0;i<3;++i){
         for(int j=0;j<t1[i].cntinfo;++j){
@@ -403,7 +494,7 @@ int main()
    // shufflequeue(teacherCredits);
     TimeTable mytable;
     mytable.fillTable(teacherCredits);
-    mytable.display();
+    //mytable.display();
 
   
 
