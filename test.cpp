@@ -252,20 +252,19 @@ public:
 int teacher::teachers=0;
 
 class TimeTable{
-    const int no_days=5;
+    const int no_days=5,no_slots=8,no_rooms=33;
     HashMap days[5];
-    bool visited[5][8][33+no_labs];
+    Info table[no_days][no_rooms][no_slots];
     
     public:
-    Info table[5][8][33];
 
     void fillTable(queue<Info>&allcourses){
         
         for(int i=0;i<no_days;++i){
             //numbers of days
-            for(int j=0;j<8;++j){
+            for(int j=0;j<no_rooms;++j){
                 //for each time slot
-                for(int k=0;k<33;++k){
+                for(int k=0;k<no_slots;++k){
                    Info current=allcourses.front();
                    if(current.hours==0){
                     table[i][j][k]=current;
@@ -296,9 +295,9 @@ class TimeTable{
         }
     }    
 
-    bool checkotherrooms(int day,int slot,int room,string section, string teacher){
+    bool checkotherrooms(int day,int room,int slot,string section, string teacher){
         for(int i=0;i<room;++i){
-            if(table[day][slot][i].sectionname==section||table[day][slot][i].tname==teacher){
+            if(table[day][i][slot].sectionname==section||table[day][i][slot].tname==teacher){
                 return false;
             }
         }
@@ -324,11 +323,9 @@ class TimeTable{
     }
 
     void display(){
-        for(int i=0;i<i;++i){
-            cout<<"\t\t\t\tMONDAY\n\n\n";
-            for(int j=0;j<8;++j){
-                cout<<"SLOT "<<j+8<<":\t";
-                for(int k=0;k<33+no_labs;++k){
+        for(int i=0;i<no_days;++i){
+            for(int j=0;j<no_rooms;++j){
+                for(int k=0;k<no_slots;++k){
                     cout<<table[i][j][k].sectionname<<table[i][j][k].sname<<table[i][j][k].tname<<"\t";
                 }
                 cout<<"\n\n\n";
