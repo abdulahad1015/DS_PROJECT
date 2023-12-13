@@ -6,9 +6,9 @@
 #include <fstream>
 #include <sstream>
 using namespace std;
-#define TotalSections 35
+#define TotalSections 32
 #define TotalElectives 10
-#define TotalTeachers 5
+#define TotalTeachers 71
 #define TotalCourses 4
 #define maxCredit 12
 #define monday 0
@@ -54,7 +54,9 @@ class HashMap{
 struct Info{
     string tname;
     string sectionname;
+    string subsection[2]={"",""};
     string sname;
+    int type=1;
     int hours=0;
 };
 
@@ -90,6 +92,7 @@ public:
     int strength;
     string subsection[2]={"",""};
     string sectionname;
+    int type=1;
     subject courses[TotalCourses];
     section() {}
     section(int strength,string sectionname) : sectionname(sectionname),strength(strength) {}
@@ -140,13 +143,15 @@ public:
 
     void fillTable(queue<Info>&);
 
-    bool checkOtherRooms(int,int,int,string,string);
+    bool checkOtherRooms(int,int,int,string,string,string [],int);
 
     bool frequencyOFsectionORteacher(string, string, int );
 
     bool frequencyOFsectionANDteacher(string , int);
 
     bool checkOffDay(int ,string);
+
+    void backtrackerCore(Info ,int ,int room,int slot);
 
     void display();
     
@@ -214,12 +219,13 @@ void breakTeachers(const string& line,teacher *t1,section s1[])
     {
         all.push_back(token);
     }
+    
     t1->setname(all[0]);
     int counter=stoi(all[1]);
     t1->cntCourses=counter;
     for(int j=0;j<counter;j++){
         t1->courses[j].name=all[j+2];
-        t1->courses[j].sethours(stoi(all[j+2+4]));
+        t1->courses[j].sethours(stoi(all[j+2+counter]));
     }
     int sections=stoi(all[2+2*counter]);
     //t1->cntSec=sections;
@@ -273,6 +279,7 @@ void breakElectives(const string& line,section *s1)
     s1->subsection[0]=all[2];
     s1->subsection[1]=all[3];
     s1->courses[0].name=all[4];
+    s1->type=2;
 
 }
 
@@ -304,8 +311,7 @@ int main()
     section s1[TotalSections+TotalElectives];
     readSections(s1);
     readElectives(s1);
-    for(int i=0;i<45;i++)
-    s1[i].display();
+    
     //-----------------------------------------
 
 
@@ -376,7 +382,6 @@ int main()
 	queue<Info> teacherCredits;
     
      for(int i=0;i<TotalTeachers;++i){
-        cout<<t1[i].cntinfo<<endl;
         for(int j=0;j<t1[i].cntinfo;++j){
              teacherCredits.push(t1[i].credit[j]);
      }
@@ -387,13 +392,10 @@ int main()
     freeslot.sname="-";
     freeslot.tname="-";
     
-    
-    for(int i=0;i<1287;++i)teacherCredits.push(freeslot);
-    cout<<"HElooooooooo"<<teacherCredits.size()<<endl;
-   // shufflequeue(teacherCredits);
     TimeTable mytable;
+    cout<<"HELooooooooooooooooooooooooooooooooooooooooooooooooooo"<<endl;
     mytable.fillTable(teacherCredits);
-    mytable.display();
+    //mytable.display();
     mytable.Monday();
     mytable.Tuesday();
     mytable.Wednesday();
@@ -401,12 +403,7 @@ int main()
     mytable.Friday();
 
 
-    for(int i=0;i<teacherCredits.size();i++){
-        Info a=teacherCredits.front();
-        cout<<a.sectionname<<" "<<a.sname<<" "<<a.hours<<" "<<a.tname<<endl;
-        teacherCredits.pop();
-        teacherCredits.push(a);
-    }
+
     //mytable.display();
   
 
@@ -539,9 +536,14 @@ void teacher::matching() {
                 if (courses[j].name == no_of_sections[i].courses[k].name) {
                     flag = true;
                     for (int l = 0; l < courses[j].hours; ++l) {
+                        if(no_of_sections[i].type==2){
+                            for(int m=0;m<2;++m)
+                                credit[cntinfo].subsection[m]=no_of_sections[i].subsection[m];
+                        }
                         credit[cntinfo].sectionname = no_of_sections[i].sectionname;
                         credit[cntinfo].sname = courses[j].name;
                         credit[cntinfo].hours = courses[j].hours;
+                        credit[cntinfo].type=no_of_sections[j].type;
                         credit[cntinfo++].tname = name;
                     }
                 }
@@ -553,83 +555,98 @@ void teacher::matching() {
 ///////////////////////HASHMAP CLASS///////////////
 
 void TimeTable::fillTable(queue<Info>& allcourses) {
-    
-    for(int i=0;i<5;++i){
-        shufflequeue(allcourses);
-        if(allcourses.size()<=8){
-            cout<<allcourses.size()<<endl;
-            return;
+    //Add free slots
+    int num_free_slots= no_rooms*no_slots*no_rooms - allcourses.size();
+    Info freeslot;
+    freeslot.hours=0;
+    freeslot.sectionname="-";
+    freeslot.sname="-";
+    freeslot.tname="-";
+    // for(int i=0;i<num_free_slots;++i){
+    //     allcourses.push(freeslot);
+    // }
+    //End adding free slots
+    shufflequeue(allcourses);
+    //Start filling
+    int a=allcourses.size();
+    while(!allcourses.empty()){
+        if(a==0){
+            break;
         }
         
-            //numbers of days
-            for(int j=0;j<no_rooms;++j){
-                //for each time slot
-                for(int k=0;k<no_slots;++k){
-                    Info current;
-                   if(i==4&&j==32&&k==7&&!allcourses.empty()){
-                        i=0;
-                        break;
-                    }
-                    if(allcourses.empty()){
-                        return;   
-                    }
-                    else{
-                        current=allcourses.front();
-                    }
-                    if(table[i][j][k].hours>0){
-                        continue;
-                    }
-                   if(current.hours==0){
-                    table[i][j][k]=current;
-                    allcourses.pop();
-                    continue;
-                   }
-                   if(current.hours==3||current.hours==2){
-                   
-                   bool allowed1= checkOtherRooms(i,j,k,current.sectionname,current.tname);
-                   bool allowed2=frequencyOFsectionORteacher(current.sectionname,current.tname,i);
-                   bool allowed3=frequencyOFsectionANDteacher(current.tname+current.sectionname,i);
-                   bool allowed4=true;
-                   if(allowed1&&allowed2&&allowed3&&allowed4){
-                    table[i][j][k]=current;
-                    days[i].insert(current.sname);
-                    days[i].insert(current.tname);
-                    days[i].insert(current.tname+current.sectionname);
-                    allcourses.pop();
-                   }
-                   else{
-                    allcourses.pop();
-                    allcourses.push(current);
-                    k--;
-                    continue;
-                   }
-                   }
-                }
-            }
-        }
+        a--;
+        
+        backtrackerCore(allcourses.front(),0,0,0);
+        allcourses.pop();
+    }
+       
 }
-bool TimeTable::checkOtherRooms(int day, int slot, int room, std::string section, std::string teacher) {
-    for (int i = 0; i < room; ++i) {
+
+void TimeTable::backtrackerCore(Info current,int day,int room,int slot){
+   
+   day=rand()%no_days;
+   room=rand()%no_rooms;
+   slot=rand()%no_slots;
+    if(day>=no_days||room>=no_rooms||slot>=no_slots){
+        return;
+    }
+    if((checkOffDay(day,current.sectionname))||!(frequencyOFsectionANDteacher(current.tname+current.sectionname,day))||!frequencyOFsectionORteacher(current.sectionname,current.tname,day)){
+        backtrackerCore(current,day+1,room,slot);
+        return;
+    }
+    else if(!checkOtherRooms(day,room,slot,current.sectionname,current.tname,current.subsection,current.type)){
+        backtrackerCore(current,day,room,slot+1);
+        return;
+    }
+    else if(table[day][room][slot].hours>0){
+        backtrackerCore(current,day,room+1,slot);
+        return;
+    }
+    table[day][room][slot]=current;
+    days[day].insert(current.sname);
+    days[day].insert(current.tname);
+    days[day].insert(current.tname+current.sectionname);
+    return;
+}
+bool TimeTable::checkOtherRooms(int day, int room,int slot, std::string section, std::string teacher, string subsec[], int type) {
+    
+    if(type==1){
+    for (int i = 0; i < no_rooms; ++i) {
         if (table[day][i][slot].sectionname == section || table[day][i][slot].tname == teacher) {
             return false;
         }
     }
     return true;
+    }
+    else{
+        cout<<"here"<<endl;
+        for (int i = 0; i < no_rooms; ++i) {
+        if( table[day][i][slot].tname == teacher){
+            return false;
+        }
+        if (table[day][i][slot].sectionname == subsec[0] ||(table[day][i][slot].sectionname == subsec[1])) {
+            if(table[day][i][slot].type==1){
+                return false;
+            }
+        }
+        }
+        return true;
+    }
 }
-bool TimeTable::checkOffDay(int day, std::string section) {
+bool TimeTable::checkOffDay(int day,string section) {
     if(section[0]=='1'&&day==0){
-        return false;
+        return true;
     }
     if(section[0]=='3'&&day==1){
-        return false;
+        return true;
     }
     if(section[0]=='5'&&day==2){
-        return false;
+        return true;
     }
     if(section[0]=='7'&&day==3){
-        return false;
+        return true;
     }
-    return true;
+    return false;
 }
 
 bool TimeTable::frequencyOFsectionORteacher(std::string section, std::string teacher, int currentDay) {
@@ -665,12 +682,22 @@ void TimeTable::Monday()
 {
         fstream file;
         file.open("monday.csv");
+        file<<"Class Room,";
+        for(int j=0;j<4;j++)
+        file << j+8<<":00-"<<j+9<<":00,";	
+        for(int j=4;j<8;j++)
+        file << j+8<<":00-"<<j+9<<":00,";
+        file <<endl;
         for(int i=0;i<33;i++)
         {
-            //file << i+8<<"-"<<i+9<<",";	
-            for(int j=0;j<8;j++)
+            file << i+1<<",";	
+            for(int j=1;j<9;j++)
             {
-                file<<table[0][i][j].tname<<" "<<table[0][i][j].sectionname<<" "<<table[0][i][j].sname<<",";
+                if(table[0][i][j-1].type==1)
+                file<<table[0][i][j-1].tname<<" "<<table[0][i][j-1].sectionname<<" "<<table[0][i][j-1].sname<<",";
+                else{
+                    file<<table[0][i][j-1].tname<<" "<<table[0][i][j-1].subsection[0]<<" "<<table[0][i][j-1].subsection[1]<<",";
+                }
             }
             file <<endl;
         } 
@@ -680,12 +707,22 @@ void TimeTable::Tuesday()
 {
         fstream file;
         file.open("tuesday.csv");
+        file<<"Class Room,";
+        for(int j=0;j<4;j++)
+        file << j+8<<":00-"<<j+9<<":00,";	
+        for(int j=4;j<8;j++)
+        file << j+8<<":00-"<<j+9<<":00,";
+        file <<endl;
         for(int i=0;i<33;i++)
         {
-            //file << i+8<<"-"<<i+9<<",";	
-            for(int j=0;j<8;j++)
+            file << i+1<<",";	
+            for(int j=1;j<9;j++)
             {
-                file<<table[1][i][j].tname<<" "<<table[1][i][j].sectionname<<" "<<table[1][i][j].sname<<",";
+                if(table[1][i][j-1].type==1)
+                file<<table[1][i][j-1].tname<<" "<<table[1][i][j-1].sectionname<<" "<<table[1][i][j-1].sname<<",";
+                else{
+                    file<<table[1][i][j-1].tname<<" "<<table[1][i][j-1].subsection[0]<<" "<<table[1][i][j-1].subsection[1]<<",";
+                }
             }
             file <<endl;
         } 
@@ -695,12 +732,22 @@ void TimeTable::Wednesday()
 {
         fstream file;
         file.open("wednesday.csv");
+        file<<"Class Room,";
+        for(int j=0;j<4;j++)
+        file << j+8<<":00-"<<j+9<<":00,";	
+        for(int j=4;j<8;j++)
+        file << j+8<<":00-"<<j+9<<":00,";
+        file <<endl;
         for(int i=0;i<33;i++)
         {
-            file << i+8<<"-"<<i+9<<",";	
-            for(int j=0;j<8;j++)
+            file << i+1<<",";	
+            for(int j=1;j<9;j++)
             {
-                file<<table[2][i][j].tname<<table[2][i][j].sectionname<<table[2][i][j].sname<<",";
+                if(table[2][i][j-1].type==1)
+                file<<table[2][i][j-1].tname<<" "<<table[2][i][j-1].sectionname<<" "<<table[2][i][j-1].sname<<",";
+                else{
+                    file<<table[2][i][j-1].tname<<" "<<table[2][i][j-1].subsection[0]<<" "<<table[2][i][j-1].subsection[1]<<",";
+                }
             }
             file <<endl;
         } 
@@ -710,12 +757,23 @@ void TimeTable::Thursday()
 {
         fstream file;
         file.open("thursday.csv");
+        for(int j=0;j<8;j++)
+        file<<"Class Room,";
+        for(int j=0;j<4;j++)
+        file << j+8<<":00-"<<j+9<<":00,";	
+        for(int j=4;j<8;j++)
+        file << j+8<<":00-"<<j+9<<":00,";
+        file <<endl;
         for(int i=0;i<33;i++)
         {
-            //file << i+8<<"-"<<i+9<<",";	
-            for(int j=0;j<8;j++)
+            file << i+1<<",";	
+            for(int j=1;j<9;j++)
             {
-                file<<table[3][i][j].tname<<table[3][i][j].sectionname<<table[3][i][j].sname<<",";
+                if(table[3][i][j-1].type==1)
+                file<<table[3][i][j-1].tname<<" "<<table[3][i][j-1].sectionname<<" "<<table[3][i][j-1].sname<<",";
+                else{
+                    file<<table[3][i][j-1].tname<<" "<<table[3][i][j-1].subsection[0]<<" "<<table[3][i][j-1].subsection[1]<<",";
+                }
             }
             file <<endl;
         } 
@@ -725,12 +783,23 @@ void TimeTable::Friday()
 {
         fstream file;
         file.open("friday.csv");
+        file<<"Class Room,";
+        for(int j=0;j<4;j++)
+        file << j+8<<":00-"<<j+9<<":00,";	
+        for(int j=4;j<8;j++)
+        file << j+8<<":00-"<<j+9<<":00,";
+        file <<endl;
         for(int i=0;i<33;i++)
         {
-            //file << i+8<<"-"<<i+9<<",";	
-            for(int j=0;j<8;j++)
+            file << i+1<<",";	
+            for(int j=1;j<9;j++)
             {
-                file<<table[4][i][j].tname<<table[4][i][j].sectionname<<table[4][i][j].sname<<",";
+                if(table[4][i][j-1].type==1)
+                file<<table[4][i][j-1].tname<<" "<<table[4][i][j-1].sectionname<<" "<<table[4][i][j-1].sname<<",";
+                else{
+                   
+                    file<<table[4][i][j-1].tname<<" "<<table[4][i][j-1].subsection[0]<<" "<<table[4][i][j-1].subsection[1]<<",";
+                }
             }
             file <<endl;
         } 
