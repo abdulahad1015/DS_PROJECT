@@ -680,7 +680,7 @@ void TimeTable::display() {
 }
 void TimeTable::Monday()
 {
-        fstream file;
+        ofstream file;
         file.open("monday.csv");
         file<<"Class Room,";
         for(int j=0;j<4;j++)
@@ -705,7 +705,7 @@ void TimeTable::Monday()
 }
 void TimeTable::Tuesday()
 {
-        fstream file;
+        ofstream file;
         file.open("tuesday.csv");
         file<<"Class Room,";
         for(int j=0;j<4;j++)
@@ -730,7 +730,7 @@ void TimeTable::Tuesday()
 }
 void TimeTable::Wednesday()
 {
-        fstream file;
+        ofstream file;
         file.open("wednesday.csv");
         file<<"Class Room,";
         for(int j=0;j<4;j++)
@@ -755,10 +755,8 @@ void TimeTable::Wednesday()
 }
 void TimeTable::Thursday()
 {
-        fstream file;
+        ofstream file;
         file.open("thursday.csv");
-        for(int j=0;j<8;j++)
-        file<<"Class Room,";
         for(int j=0;j<4;j++)
         file << j+8<<":00-"<<j+9<<":00,";	
         for(int j=4;j<8;j++)
@@ -781,7 +779,7 @@ void TimeTable::Thursday()
 }    
 void TimeTable::Friday()
 {
-        fstream file;
+        ofstream file;
         file.open("friday.csv");
         file<<"Class Room,";
         for(int j=0;j<4;j++)
