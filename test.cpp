@@ -468,7 +468,7 @@ void shufflequeue(queue<Info> &myq)
 {
 	srand(time(0));
     int size=myq.size();
-	Info arr[size];
+	Info *arr=new Info[size];
 	for(int i=0;i<size;i++)
 	{
 		arr[i]=myq.front();
